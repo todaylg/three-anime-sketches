@@ -1,0 +1,29 @@
+{
+	"name": "three-anime-sketches",
+	"version": "0.0.1",
+	"author": "todaylg",
+	"scripts": {
+		"dev": "npm run serve",
+		"serve": "vue-cli-service serve",
+		"build": "vue-cli-service build"
+	},
+	"dependencies": {
+		"core-js": "^3.6.4",
+		"vue": "^2.6.11"
+	},
+	"devDependencies": {
+		"@vue/cli-plugin-babel": "^4.1.2",
+		"@vue/cli-service": "^4.1.2",
+		"gh-pages": "^2.2.0",
+		"glsl-easings": "^1.0.0",
+		"glsl-fast-gaussian-blur": "^1.0.2",
+		"glsl-noise": "0.0.0",
+		"glslify-loader": "^2.0.0",
+		"less": "^3.10.3",
+		"less-loader": "^5.0.0",
+		"raw-loader": "^4.0.0",
+		"three": "^0.113.2",
+		"vue-observe-visibility": "^0.4.6",
+		"vue-template-compiler": "^2.6.11"
+	}
+}
