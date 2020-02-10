@@ -45,7 +45,7 @@ function preLoadimages(imageList) {
 function isDevelopment(){
     const searchStr = window.location.search.toLowerCase();
     const baseURL = window.location.origin;
-    if (baseURL.match('192.168.') || baseURL.match('127.0.') || baseURL.match('localhost') || baseURL == devDomain) return true;
+    if (baseURL.match('192.168.') || baseURL.match('127.0.') || baseURL.match('localhost')) return true;
     if (searchStr.match('debug=true') || searchStr.match('debugmode=true')) return true;
     return false;
 }

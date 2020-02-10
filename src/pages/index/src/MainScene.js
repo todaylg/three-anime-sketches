@@ -79,7 +79,7 @@ export default class MainScene {
 		this.title = new Title(this);
 		this.title.mesh.position.y = this.initCameraYPos;
 		this.initPostProcessing();
-		if (!this.debug) this.initGUI();
+		if (this.debug) this.initGUI();
 		this.initEvents();
 		this.animete();
 		typeof callback === 'function' && callback();

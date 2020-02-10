@@ -21,7 +21,7 @@ export default {
 	},
 	methods: {
 		toPrePage(){
-			window.location.href = './index';
+			window.location.href = '/three-anime-sketches/index/';
 		}
 	}
 };

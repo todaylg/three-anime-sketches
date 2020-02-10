@@ -2,7 +2,7 @@
 
 Used to draw some favorite animation scenes, and also used to learning and practice shaders (based on threejs)
 
-[Demo](https://todaylg.github.io/three-anime-sketches/index)
+[Demo](https://todaylg.github.io/three-anime-sketches/index/)
 
 Tamako with balloons:
 

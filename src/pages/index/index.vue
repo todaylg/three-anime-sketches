@@ -43,7 +43,7 @@ export default {
 			});
 		},
 		toNextPage(){
-			window.location.href = './sakura';
+			window.location.href = '/three-anime-sketches/sakura/';
 		}
 	}
 };
