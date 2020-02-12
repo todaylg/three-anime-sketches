@@ -6,9 +6,9 @@ const imgSrc = require('../images/megumi.png');
 const imgSPSrc = require('../images/megumi_sp.png');
 
 export default class Megumi {
-	constructor(scene) {
-		this.isMobile = isMobile();
-		this.scene = scene;
+	constructor(mainScene) {
+		this.isMobile = mainScene.isMobile;
+		this.scene = mainScene.scene;
 		this.obj = null;
 	}
 

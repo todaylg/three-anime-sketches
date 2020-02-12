@@ -11,6 +11,8 @@ float pAlpha = 1.0;
 
 uniform vec3 ambientLightColor;
 uniform float ambientStrength;
+uniform vec3 topColor;
+uniform vec3 bottomColor;
 
 struct DirectionalLight {
     vec3 target;
@@ -69,7 +71,7 @@ void main() {
 	}
 	if(r > rstop) discard;
     // r = ellipse(flwrp, vec2(0.250,0.440), vec2(0.140,0.190));
-    vec3 col = mix(vec3(1.0, 0.8, 0.75), vec3(1.0, 0.9, 0.87), r);
+    vec3 col = mix(topColor, bottomColor, r);
     
 	float grady = mix(0.0, 1.0, pow(coord.y * 0.5 + 0.5, 0.35));
   	col *= vec3(1.0, grady, grady);

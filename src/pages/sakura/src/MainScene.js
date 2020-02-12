@@ -8,8 +8,10 @@ import { ShaderPass } from "LIB/threejs/postprocessing/ShaderPass";
 import { UnrealBloomPass } from "LIB/threejs/postprocessing/UnrealBloomPass";
 import { VignetteShader } from "LIB/threejs/shaders/VignetteShader";
 // Utils
+import { getEleWidth, getEleHeight, isMobile } from 'JS/Utils';
 import TWEEN from 'LIB/threejs/libs/tween.module.min';
-import { getEleWidth, getEleHeight } from 'JS/Utils';
+// Test
+import { GUI } from 'LIB/threejs/libs/dat.gui.module.js';
 
 export default class MainScene {
 	constructor(container, callback) {
@@ -17,6 +19,8 @@ export default class MainScene {
 		this.width = getEleWidth(container);
 		this.height = getEleHeight(container);
 		this.clock = new THREE.Clock();
+		this.debug = true;
+		this.isMobile = isMobile();
 
 		// Camera
 		const camera = (this.camera = new THREE.PerspectiveCamera(
@@ -43,10 +47,11 @@ export default class MainScene {
 
 	initScene(callback) {
 		const scene = (this.scene = new THREE.Scene());
-		this.sakura = new Sakura(scene);
-		this.megumi = new Megumi(scene);
+		this.sakura = new Sakura(this);
+		this.megumi = new Megumi(this);
 		this.megumi.loadTexture().then(() => {
 			this.initPostProcessing();
+			if (this.debug) this.initGUI();
 			this.initEntryAnime();
 			this.animete();
 			this.initEvents();
@@ -68,6 +73,92 @@ export default class MainScene {
 		vignettePass.uniforms['offset'].value = 1000;
 		vignettePass.uniforms['darkness'].value = 20;
 		this.composer.addPass(vignettePass);
+	}
+
+	initGUI(){
+		let gui = new GUI();
+		let sakura = this.sakura;
+		let sakuraMaterial = sakura.mesh.material;
+		let params = {
+			// Sakura
+			sakuraTopColor: sakuraMaterial.uniforms.topColor.value.getHex(),
+			sakuraBottomColor: sakuraMaterial.uniforms.bottomColor.value.getHex(),
+			sakuraLightColor: sakura.directionalLight.lightColor.getHex(),
+			sakuraLightDiffuse: sakura.directionalLight.diffuseFactor,
+			sakuraLightSpecular: sakura.directionalLight.specularFactor,
+			// PP
+			vignetteOffset: 1.2,
+			vignetteDarkness: 1,
+			bloomStrength: 0.4,
+			bloomRadius: 0.5,
+			bloomThreshold: 0.995
+		};
+		gui.close();
+		// Sakura
+		const sakuraFolder = gui.addFolder('Sakura');
+		sakuraFolder
+			.addColor(params, 'sakuraTopColor')
+			.name('topColor')
+			.onChange(value => {
+				sakuraMaterial.uniforms.topColor.value.setHex(value);
+			});
+		sakuraFolder
+			.addColor(params, 'sakuraBottomColor')
+			.name('bottomColor')
+			.onChange(value => {
+				sakuraMaterial.uniforms.bottomColor.value.setHex(value);
+			});
+		sakuraFolder
+			.addColor(params, 'sakuraLightColor')
+			.name('lightColor')
+			.onChange(value => {
+				sakura.directionalLight.lightColor.setHex(value);
+			});
+		sakuraFolder
+			.add(params, 'sakuraLightDiffuse', 0, 5)
+			.name('diffuseFoctor')
+			.onChange(value => {
+				sakura.directionalLight.diffuseFactor = value;
+			});
+		sakuraFolder
+			.add(params, 'sakuraLightSpecular', 0, 10)
+			.name('specularFoctor')
+			.onChange(value => {
+				sakura.directionalLight.specularFactor = value;
+			});
+		// PP
+		const ppFolder = gui.addFolder('Post-processing');
+		ppFolder
+			.add(params, 'vignetteOffset', 0, 5)
+			.step(0.01)
+			.onChange(value => {
+				this.vignettePass.uniforms.offset.value = value;
+			});
+		ppFolder
+			.add(params, 'vignetteDarkness', 0, 5)
+			.step(0.01)
+			.onChange(value => {
+				this.vignettePass.uniforms.darkness.value = value;
+			});
+		ppFolder
+			.add(params, 'bloomStrength', 0, 1)
+			.step(0.01)
+			.onChange(value => {
+				this.bloomPass.strength = value;
+			});
+		ppFolder
+			.add(params, 'bloomRadius', 0, 1)
+			.step(0.01)
+			.onChange(value => {
+				this.bloomPass.radius = value;
+			});
+		ppFolder
+			.add(params, 'bloomThreshold', 0, 1)
+			.step(0.01)
+			.onChange(value => {
+				this.bloomPass.threshold = value;
+			});
+		ppFolder.close();
 	}
 
 	initEntryAnime() {

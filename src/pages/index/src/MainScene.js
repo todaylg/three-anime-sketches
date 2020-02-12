@@ -11,7 +11,7 @@ import { ShaderPass } from 'LIB/threejs/postprocessing/ShaderPass';
 import { VignetteShader } from 'LIB/threejs/shaders/VignetteShader';
 import { BlurPassShader } from 'COMMON/modules/BlurPass/BlurPassShader';
 // Utils
-import { getEleWidth, getEleHeight, isDevelopment, isMobile } from 'JS/Utils';
+import { getEleWidth, getEleHeight, isMobile } from 'JS/Utils';
 import TWEEN from 'LIB/threejs/libs/tween.module.min';
 // Test
 import { GUI } from 'LIB/threejs/libs/dat.gui.module.js';
@@ -22,7 +22,7 @@ export default class MainScene {
 		this.width = getEleWidth(container);
 		this.height = getEleHeight(container);
 		this.clock = new THREE.Clock();
-		this.debug = isDevelopment();
+		this.debug = true;
 		this.isMobile = isMobile();
 		// Camera
 		const camera = (this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.1, 500));
@@ -123,6 +123,7 @@ export default class MainScene {
 			vignetteOffset: this.vignettePass.uniforms.offset.value,
 			vignetteDarkness: this.vignettePass.uniforms.darkness.value
 		};
+		gui.close();
 		// Background
 		const bgFolder = gui.addFolder('Background');
 		bgFolder
@@ -191,7 +192,7 @@ export default class MainScene {
 			.onChange(value => {
 				this.vignettePass.uniforms.darkness.value = value;
 			});
-		ppFolder.open();
+		ppFolder.close();
 	}
 
 	initEvents() {
@@ -199,7 +200,6 @@ export default class MainScene {
 	}
 
 	onWindowResize() {
-		window.scrollTo(0,0);
 		this.width = window.innerWidth;
 		this.height = window.innerHeight;
 		this.camera.aspect = this.width / this.height;

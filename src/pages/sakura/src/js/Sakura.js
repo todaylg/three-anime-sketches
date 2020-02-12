@@ -9,8 +9,8 @@ function symmetryRandom() {
 }
 
 export default class Sakura {
-	constructor(scene) {
-		this.scene = scene;
+	constructor(mainScene) {
+		this.scene = mainScene.scene;
 		this.deltaTime = 0;
 		this.particleControl = {
 			particleNum: 500,
@@ -31,6 +31,10 @@ export default class Sakura {
 		this.initParticle();
 	}
 
+	get mesh(){
+		return this.points;
+	}
+	
 	initParticle() {
 		let { particleControl } = this;
 		let { particleNum, area } = particleControl;
@@ -76,6 +80,8 @@ export default class Sakura {
 				type: 'f',
 				value: area[2]
 			},
+			topColor: { value: new THREE.Color(1.0, 0.8, 0.75) },
+			bottomColor: { value: new THREE.Color(1.0, 0.9, 0.87) },
 			ambientLightColor: { value: new THREE.Color(0xffffff) },
 			ambientStrength: { value: 2 },
 			directionalLight: { value: this.directionalLight }
