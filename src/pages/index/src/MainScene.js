@@ -72,8 +72,6 @@ export default class MainScene {
 
 	initScene(callback) {
 		const scene = (this.scene = new THREE.Scene());
-		var helper = new THREE.CameraHelper( this.camera );
-		scene.add( helper );
 		this.background = new Background(this);
 		this.balloons = new Balloons(this);
 		this.title = new Title(this);
