@@ -5,7 +5,6 @@ varying vec2 vUv;
 uniform vec3 uColor;
 uniform float uColorOffset;
 uniform vec2 uOffset;
-uniform float uTime;
 uniform float uScale;
 
 void main() {

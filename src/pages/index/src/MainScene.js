@@ -1,15 +1,12 @@
-import * as THREE from 'three';
-import Background from './modules/Background/Background';
-import Balloons from './modules/Balloons/Balloons';
-import Title from './modules/Title/Title';
-// Control
-import { OrbitControls } from 'LIB/threejs/controls/OrbitControls';
+import * as THREE from "three";
+import Sakura from "./js/Sakura";
+import Megumi from "./js/Megumi";
 // Post-Processing
-import { EffectComposer } from 'LIB/threejs/postprocessing/EffectComposer';
-import { RenderPass } from 'LIB/threejs/postprocessing/RenderPass';
-import { ShaderPass } from 'LIB/threejs/postprocessing/ShaderPass';
-import { VignetteShader } from 'LIB/threejs/shaders/VignetteShader';
-import { BlurPassShader } from 'COMMON/modules/BlurPass/BlurPassShader';
+import { EffectComposer } from "LIB/threejs/postprocessing/EffectComposer";
+import { RenderPass } from "LIB/threejs/postprocessing/RenderPass";
+import { ShaderPass } from "LIB/threejs/postprocessing/ShaderPass";
+import { UnrealBloomPass } from "LIB/threejs/postprocessing/UnrealBloomPass";
+import { VignetteShader } from "LIB/threejs/shaders/VignetteShader";
 // Utils
 import { getEleWidth, getEleHeight, isMobile } from 'JS/Utils';
 import TWEEN from 'LIB/threejs/libs/tween.module.min';
@@ -24,11 +21,16 @@ export default class MainScene {
 		this.clock = new THREE.Clock();
 		this.debug = true;
 		this.isMobile = isMobile();
+
 		// Camera
-		const camera = (this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.1, 500));
-		this.initCameraYPos = 0;
-		camera.position.set(0, this.initCameraYPos, 20);
-		
+		const camera = (this.camera = new THREE.PerspectiveCamera(
+			45,
+			this.width / this.height,
+			1,
+			500
+		));
+		camera.position.set(0, 0, 10);
+
 		// Renderer
 		const renderer = (this.renderer = new THREE.WebGLRenderer({
 			antialias: false
@@ -39,158 +41,143 @@ export default class MainScene {
 		renderer.gammaFactor = 2.2;
 		renderer.setClearColor(0xffffff, 1.0);
 		container.appendChild(renderer.domElement);
-
-		this.initControl();
 		// Scene
 		this.initScene(callback);
 	}
 
-	initEntryAnime() {
-		// Todo:
-		// new TWEEN.Tween(this.camera.position)
-		// .to({ y: 0 }, 10000)
-		// .onUpdate((value) => {
-		// 	this.control.target.y = value.y;
-		// })
-		// .easing(TWEEN.Easing.Exponential.InOut)
-		// .start();
-	}
-
-	initControl() {
-		this.control = new OrbitControls(this.camera, this.container);
-		this.control.target.y = this.initCameraYPos;
-		this.control.enableZoom = false;
-		this.control.enablePan = false;
-		// Horizontal
-		this.control.minAzimuthAngle = -Math.PI / 6;
-		this.control.maxAzimuthAngle = Math.PI / 6;
-		// Vertical
-		this.control.minPolarAngle = Math.PI / 2;
-		this.control.maxPolarAngle = Math.PI / 2;
-		this.control.rotateSpeed = 0.1;
-	}
-
 	initScene(callback) {
 		const scene = (this.scene = new THREE.Scene());
-		this.background = new Background(this);
-		this.balloons = new Balloons(this);
-		this.title = new Title(this);
-		this.title.mesh.position.y = this.initCameraYPos;
-		this.initPostProcessing();
-		if (this.debug) this.initGUI();
-		this.initEvents();
-		this.animete();
-		typeof callback === 'function' && callback();
+		this.sakura = new Sakura(this);
+		this.megumi = new Megumi(this);
+		this.megumi.loadTexture().then(() => {
+			this.initPostProcessing();
+			if (this.debug) this.initGUI();
+			this.initEntryAnime();
+			this.animete();
+			this.initEvents();
+			typeof callback === 'function' && callback();
+		});
 	}
 
 	initPostProcessing() {
 		this.composer = new EffectComposer(this.renderer);
 		this.composer.addPass(new RenderPass(this.scene, this.camera));
-
-		// Blur
-		let blurPassX = (this.blurPassX = new ShaderPass(BlurPassShader));
-		blurPassX.uniforms['resolution'].value = new THREE.Vector2(this.width, this.height);
-		blurPassX.uniforms['direction'].value = new THREE.Vector2(0, 1);
-		this.composer.addPass(blurPassX);
-		let blurPassY = (this.blurPassY = new ShaderPass(BlurPassShader));
-		blurPassY.uniforms['resolution'].value = new THREE.Vector2(this.width, this.height);
-		blurPassY.uniforms['direction'].value = new THREE.Vector2(1, 0);
-		this.composer.addPass(blurPassY);
-
-		// Vignette
+		// Strength, Radius, Threshold
+		let bloomPass = (this.bloomPass = new UnrealBloomPass(new THREE.Vector2(this.width, this.height)));
+		bloomPass.strength = 5;
+		bloomPass.radius = 0.5;
+		bloomPass.threshold = 0.995;
+		this.composer.addPass(bloomPass);
+		// Offset、Darkness
 		let vignettePass = (this.vignettePass = new ShaderPass(VignetteShader));
-		vignettePass.uniforms['offset'].value = 1;
-		vignettePass.uniforms['darkness'].value = 1;
+		vignettePass.uniforms['offset'].value = 1000;
+		vignettePass.uniforms['darkness'].value = 20;
 		this.composer.addPass(vignettePass);
 	}
 
-	initGUI() {
+	initGUI(){
 		let gui = new GUI();
-		let bgMaterial = this.background.mesh.material;
-		let balloonMaterial = this.balloons.mesh.material;
+		let sakura = this.sakura;
+		let sakuraMaterial = sakura.mesh.material;
 		let params = {
-			bgColor: bgMaterial.uniforms.uColor.value.getHex(),
-			bgColorOffset: bgMaterial.uniforms.uColorOffset.value,
-			bgCenterX: bgMaterial.uniforms.uOffset.value.x,
-			bgCenterY: bgMaterial.uniforms.uOffset.value.y,
-			bgScale: bgMaterial.uniforms.uScale.value,
-			// Balloons
-			specularFactor: balloonMaterial.uniforms.uSpecularFactor.value,
-			balloonAlpha: balloonMaterial.uniforms.uAlpha.value,
+			// Sakura
+			sakuraTopColor: sakuraMaterial.uniforms.topColor.value.getHex(),
+			sakuraBottomColor: sakuraMaterial.uniforms.bottomColor.value.getHex(),
+			sakuraLightColor: sakura.directionalLight.lightColor.getHex(),
+			sakuraLightDiffuse: sakura.directionalLight.diffuseFactor,
+			sakuraLightSpecular: sakura.directionalLight.specularFactor,
 			// PP
-			vignetteOffset: this.vignettePass.uniforms.offset.value,
-			vignetteDarkness: this.vignettePass.uniforms.darkness.value
+			vignetteOffset: 1.2,
+			vignetteDarkness: 1,
+			bloomStrength: 0.4,
+			bloomRadius: 0.5,
+			bloomThreshold: 0.995
 		};
 		gui.close();
-		// Background
-		const bgFolder = gui.addFolder('Background');
-		bgFolder
-			.addColor(params, 'bgColor')
-			.name('color')
+		// Sakura
+		const sakuraFolder = gui.addFolder('Sakura');
+		sakuraFolder
+			.addColor(params, 'sakuraTopColor')
+			.name('topColor')
 			.onChange(value => {
-				bgMaterial.uniforms.uColor.value.setHex(value);
+				sakuraMaterial.uniforms.topColor.value.setHex(value);
 			});
-		bgFolder
-			.add(params, 'bgColorOffset', 0, 1)
-			.step(0.01)
-			.name('colorOffset')
+		sakuraFolder
+			.addColor(params, 'sakuraBottomColor')
+			.name('bottomColor')
 			.onChange(value => {
-				bgMaterial.uniforms.uColorOffset.value = value;
+				sakuraMaterial.uniforms.bottomColor.value.setHex(value);
 			});
-		bgFolder
-			.add(params, 'bgCenterX', -1, 1)
-			.step(0.01)
-			.name('centerX')
+		sakuraFolder
+			.addColor(params, 'sakuraLightColor')
+			.name('lightColor')
 			.onChange(value => {
-				bgMaterial.uniforms.uOffset.value.x = value;
+				sakura.directionalLight.lightColor.setHex(value);
 			});
-		bgFolder
-			.add(params, 'bgCenterY', -1, 1)
-			.step(0.01)
-			.name('centerY')
+		sakuraFolder
+			.add(params, 'sakuraLightDiffuse', 0, 5)
+			.name('diffuseFoctor')
 			.onChange(value => {
-				bgMaterial.uniforms.uOffset.value.y = value;
+				sakura.directionalLight.diffuseFactor = value;
 			});
-		bgFolder
-			.add(params, 'bgScale', 0, 2)
-			.step(0.01)
-			.name('scale')
+		sakuraFolder
+			.add(params, 'sakuraLightSpecular', 0, 10)
+			.name('specularFoctor')
 			.onChange(value => {
-				bgMaterial.uniforms.uScale.value = 1 / value;
+				sakura.directionalLight.specularFactor = value;
 			});
-		bgFolder.close();
-		// Balloons
-		const BalloonFolder = gui.addFolder('Balloons');
-		BalloonFolder.add(params, 'specularFactor', 0, 1)
-			.step(0.01)
-			.name('specular')
-			.onChange(value => {
-				balloonMaterial.uniforms.uSpecularFactor.value = value;
-			});
-		BalloonFolder.add(params, 'balloonAlpha', 0, 1)
-			.step(0.01)
-			.name('alpha')
-			.onChange(value => {
-				balloonMaterial.uniforms.uAlpha.value = value;
-			});
-		BalloonFolder.close();
 		// PP
 		const ppFolder = gui.addFolder('Post-processing');
 		ppFolder
 			.add(params, 'vignetteOffset', 0, 5)
 			.step(0.01)
-			.name('offset')
 			.onChange(value => {
 				this.vignettePass.uniforms.offset.value = value;
 			});
 		ppFolder
 			.add(params, 'vignetteDarkness', 0, 5)
 			.step(0.01)
-			.name('darkness')
 			.onChange(value => {
 				this.vignettePass.uniforms.darkness.value = value;
 			});
+		ppFolder
+			.add(params, 'bloomStrength', 0, 1)
+			.step(0.01)
+			.onChange(value => {
+				this.bloomPass.strength = value;
+			});
+		ppFolder
+			.add(params, 'bloomRadius', 0, 1)
+			.step(0.01)
+			.onChange(value => {
+				this.bloomPass.radius = value;
+			});
+		ppFolder
+			.add(params, 'bloomThreshold', 0, 1)
+			.step(0.01)
+			.onChange(value => {
+				this.bloomPass.threshold = value;
+			});
 		ppFolder.close();
+	}
+
+	initEntryAnime() {
+		new TWEEN.Tween(this.bloomPass)
+			.to({ strength: 0.4 }, 1500)
+			.delay(800)
+			.easing(TWEEN.Easing.Exponential.InOut)
+			.start();
+		new TWEEN.Tween(this.vignettePass.uniforms.darkness)
+			.to({ value: 1 }, 1500)
+			.easing(TWEEN.Easing.Exponential.InOut)
+			.start();
+		new TWEEN.Tween(this.vignettePass.uniforms.offset)
+			.to({ value: 1.2 }, 1500)
+			.easing(TWEEN.Easing.Exponential.InOut)
+			.onComplete(() => {
+				this.enableTitleShowing = true;
+			})
+			.start();
 	}
 
 	initEvents() {
@@ -200,6 +187,7 @@ export default class MainScene {
 	onWindowResize() {
 		this.width = window.innerWidth;
 		this.height = window.innerHeight;
+		if (this.megumi) this.megumi.onResize();
 		this.camera.aspect = this.width / this.height;
 		this.camera.updateProjectionMatrix();
 		this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -209,10 +197,7 @@ export default class MainScene {
 
 	animete() {
 		const time = this.clock.getDelta();
-		this.background.render(time);
-		this.balloons.render(time);
-		this.title.render(time/1.2);
-		this.control.update();
+		this.sakura.render(time);
 		TWEEN.update();
 		this.composer.render();
 		requestAnimationFrame(this.animete.bind(this));

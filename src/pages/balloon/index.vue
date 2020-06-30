@@ -1,26 +1,34 @@
 <template>
-	<div id="wrapper" class="isLoading">
+	<div id="wrapper" :class="{ isLoading }">
 		<div id="canvasContainer"></div>
-		<div class="animeName">冴えない彼女の育てかた</div>
+		<div class="animeName">たまこラブストーリー</div>
 		<div class="scrollNextIcon">
-			<div><span @click="toPrePage()"></span></div>
+			<div><span @click="toNextPage()"></span></div>
 		</div>
 		<p class="loadingText">Loading...</p>
+		<div class="preloadMask"></div>
 	</div>
 </template>
 
 <script>
 import MainScene from './src/MainScene.js';
+import { preLoadimages } from 'JS/Utils';
+
 export default {
 	name: 'container',
+	data() {
+		return {
+			isLoading: true,
+		};
+	},
 	mounted() {
 		let containerEle = document.querySelector('#canvasContainer');
-		this.scene = new MainScene(containerEle, () => {
-			document.querySelector('#wrapper').classList.remove('isLoading');
-		});
+		this.scene = new MainScene(containerEle);
+		this.isLoading = false;
+		this.scene.initEntryAnime();
 	},
 	methods: {
-		toPrePage(){
+		toNextPage(){
 			window.location.href = '/three-anime-sketches/index/';
 		}
 	}
@@ -43,21 +51,51 @@ body {
 }
 
 #wrapper {
-	width: 100vw;
-	height: 100vh;
+	min-height: 100vh;
 	position: relative;
-	overflow: hidden;
+	overflow-x: hidden;
 	background: #000000;
 }
 
 #canvasContainer {
+	position: fixed;
 	width: 100%;
 	height: 100%;
+	top: 0;
+	left: 0;
 }
 
-.isLoading{
+.preloadMask {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	background: #000000;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 1s ease-out;
+}
+
+.loadingText {
+	position: absolute;
+	z-index: 1;
+	width: 100%;
+	top: calc(50% - 50px);
+	text-align: center;
+	letter-spacing: 11px;
+	color: #fff;
+	opacity: 0;
+	transition: opacity 0.5s ease-out, letter-spacing 0.5s ease-out;
+	pointer-events: none;
+}
+
+.isLoading {
 	.loadingText {
 		letter-spacing: 10px;
+		opacity: 1;
+	}
+	.preloadMask {
 		opacity: 1;
 	}
 	.animeName{
@@ -67,19 +105,6 @@ body {
 	.scrollNextIcon{
 		opacity: 0;
 	}
-}
-
-.loadingText {
-    position: absolute;
-    z-index: 1;
-    width: 100%;
-    top: calc(50% - 50px);
-    text-align: center;
-    letter-spacing: 11px;
-    color: #fff;
-    opacity: 0;
-    transition: opacity .5s ease-out, letter-spacing .5s ease-out;
-    pointer-events: none;
 }
 
 .animeName {
@@ -92,7 +117,6 @@ body {
 	color: #cfcfcf;
 	opacity: 1;
 	transition: all 1s ease-out;
-	transition-delay: 1.5s;
 	&::before {
 		content: '';
 		position: absolute;
@@ -112,15 +136,14 @@ body {
 		height: 1px;
 	}
 }
-
 .scrollNextIcon {
 	position: fixed;
-	left: 0;
+	left: 0px;
 	top: 50%;
 	transform: translateY(-50%);
 	opacity: 1;
 	transition: opacity 1s ease-out;
-	transition-delay: 1.5s;
+	transition-delay: 1s;
 	div {
 		span {
 			position: absolute;
@@ -129,8 +152,8 @@ body {
 			width: 24px;
 			height: 24px;
 			margin-left: 12px;
-			border-left: 1px solid rgba(0, 0, 0, 1);
-			border-bottom: 1px solid rgba(0, 0, 0, 1);
+			border-left: 1px solid rgba(255, 255, 255, 0.5);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 			transform: rotate(45deg);
 			animation: blinkAnime 2s infinite;
 			opacity: 0;
@@ -144,7 +167,6 @@ body {
 	}
 }
 
-
 @keyframes blinkAnime {
 	0% {
 		opacity: 0;
@@ -156,5 +178,4 @@ body {
 		opacity: 0;
 	}
 }
-
 </style>

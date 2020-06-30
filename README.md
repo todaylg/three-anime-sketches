@@ -15,5 +15,7 @@ Megumi with sakura:
 ## Todo:
 
 - [ ] Misaka Mikoto with lightning
+- [ ] Zelda with godray
+- [ ] Fireworks
 
 Draw! Draw! Draw! Rua!
