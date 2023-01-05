@@ -14,7 +14,7 @@
 	},
 	"devDependencies": {
 		"@vue/cli-plugin-babel": "^4.1.2",
-		"@vue/cli-service": "^4.1.2",
+		"@vue/cli-service": "^5.0.8",
 		"gh-pages": "^2.2.0",
 		"glsl-easings": "^1.0.0",
 		"glsl-fast-gaussian-blur": "^1.0.2",
